@@ -23,7 +23,7 @@ import java.util.UUID;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final WebClient webClient;
+    private final WebClient.Builder webClientBuilder;
 
     public void placeOrder(OrderRequest orderRequest) {
         List<OrderLineItems> orderLineItems = orderRequest.getOrderLineItemsList().stream().map(this::mapToDto).toList();
@@ -35,7 +35,12 @@ public class OrderService {
         List<String> skuCodes = orderRequest.getOrderLineItemsList().stream().map(OrderLineItemsDto::getSkuCode).toList();
         //Calling Inventory Service using Web Client
         //need to check weather all items are in stock or not
-        InventoryResponse[] inventoryResponseArray = webClient.get().uri("http://localhost:8082/api/inventory",
+        //used once I have NOT crated discover server and there was NOT multiple server for inventory Server
+//        String inventoryServiceUrl = "http://localhost:8082/api/inventory" ;
+        //using once I have crated discover server and multiple server for inventory Server
+        String inventoryServiceUrl = "http://inventory-service/api/inventory" ;
+
+        InventoryResponse[] inventoryResponseArray = webClientBuilder.build().get().uri(inventoryServiceUrl,
                         uriBuilder -> uriBuilder.queryParam("skuCode",skuCodes).build())
                 .retrieve()
                 .bodyToMono(InventoryResponse[].class)
